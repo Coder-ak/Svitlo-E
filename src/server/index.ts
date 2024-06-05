@@ -5,6 +5,8 @@ import jwt, { Secret } from 'jsonwebtoken';
 import { SvitloData } from '../interfaces/svitlo-data';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+import { closestTo, format, isAfter, parse, toDate } from 'date-fns';
+const shutdown = require('db/shutdown.json');
 
 const router = express.Router();
 
@@ -205,12 +207,26 @@ app.get('/light/:id(rad\\d+)?', (req, res) => {
     .findOne(req.params.id ? { area: getArea(req.params.id) } : {}, { light: 1, timestamp: 1, _id: 0 })
     .sort({ timestamp: -1 })
     .exec((err: Error, data: SvitloData) => {
+      const schedule = shutdown[data.light ? 'off' : 'on'];
+
       if (err) {
         res.status(500).send();
       }
-      res.send(data);
+      const closestTime = findClosest(schedule, data.timestamp);
+      res.send({
+        ...data,
+        ...(closestTime && { nextStateTime: format(closestTime, 'HH:mm') }),
+      });
     });
 });
+
+const findClosest = (schedule: string[], currentTime: number) => {
+  // Filter out past times
+  const futureTimes = schedule.map((time) => toDate(parse(time, 'iii HH', new Date()))).filter((time) => isAfter(time, currentTime));
+
+  // Find the closest future time
+  return closestTo(currentTime, futureTimes);
+};
 
 /**
  * Retrieve light data for all areas or the specified area.

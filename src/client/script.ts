@@ -40,6 +40,7 @@ export class Svitlo {
     try {
       this.svitloData = await response.json();
       this.displayStatus();
+      this.displaySchedule();
     } catch {
       this.errorHandler('Дані відсутні');
     }
@@ -81,6 +82,12 @@ export class Svitlo {
     }
   }
 
+  private displaySchedule(): void {
+    const { light, nextStateTime } = this.svitloData;
+
+    document.getElementById('schedule')!.innerHTML = `Наступне ${light ? 'відключення' : 'включення'} можливо o ${nextStateTime}`;
+  }
+
   private pullToRefresh(): void {
     PullToRefresh.init({
       mainElement: 'body',
@@ -118,7 +125,7 @@ export class Svitlo {
   }
 
   private async stats() {
-    const response = await this.getLightData('/light/all/rad0?limit=31');
+    const response = await this.getLightData('/light/all/rad0?limit=10');
     const data: SvitloData[] = await response.json();
 
     const table = data.map((item, index) => {
@@ -127,15 +134,9 @@ export class Svitlo {
         return;
       }
       return `<div class="row ${SvitloUtils.getState(item.light)}">
-        <img src="assets/lamp_${SvitloUtils.getState(item.light)}.svg" title="${
-        item.light ? 'Увімкнено' : 'Вимкнено'
-      }" class="icon"/> <div class="time">${SvitloUtils.formatDate(
-        item.timestamp,
-        'EEE, dd MMM, HH:mm'
-      )}</div> <div class="diff ${SvitloUtils.getState(!item.light)}">${SvitloUtils.formatDuration(
-        item.timestamp,
-        data[index + 1]?.timestamp || item.timestamp
-      )}</div></div>`;
+        <img src="assets/lamp_${SvitloUtils.getState(item.light)}.svg" title="${item.light ? 'Увімкнено' : 'Вимкнено'}" class="icon"/> 
+        <div class="time">${SvitloUtils.formatDate(item.timestamp, 'EEE, dd MMM, HH:mm')}</div> 
+        <div class="diff ${SvitloUtils.getState(!item.light)}">${SvitloUtils.formatDuration(item.timestamp, data[index + 1]?.timestamp || item.timestamp)}</div></div>`;
     });
 
     document.getElementById('stats')!.innerHTML = table.join('\n');
