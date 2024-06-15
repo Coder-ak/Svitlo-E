@@ -178,7 +178,7 @@ app.post('/light', authenticateToken, (req, res, next) => {
   sendMessage(+process.env.RADUJNY_CHAT_ID!, {
     timestamp,
     light: !!light,
-    ...(closestTime && { nextStateTime: format(closestTime, 'HH:mm') }),
+    ...(closestTime && { nextStateTime: format(closestTime, 'H:mm') }),
   });
 
   res.send('zaeb-ok');
@@ -219,14 +219,13 @@ app.get('/light/:id(rad\\d+)?', (req, res) => {
     .findOne(req.params.id ? { area: getArea(req.params.id) } : {}, { light: 1, timestamp: 1, _id: 0 })
     .sort({ timestamp: -1 })
     .exec((err: Error, data: SvitloData) => {
-
       if (err) {
         res.status(500).send();
       }
       const closestTime = findClosest(data.light, data.timestamp);
       res.send({
         ...data,
-        ...(closestTime && { nextStateTime: format(closestTime, 'HH:mm') }),
+        ...(closestTime && { nextStateTime: format(closestTime, 'H:mm') }),
       });
     });
 });
