@@ -174,11 +174,11 @@ app.post('/light', authenticateToken, (req, res, next) => {
     area: getArea(area),
   });
 
-  const closestTime = findClosest(!!light, timestamp);
+  const closestTime = findClosest(!!light);
   sendMessage(+process.env.RADUJNY_CHAT_ID!, {
     timestamp,
     light: !!light,
-    ...(closestTime && { nextStateTime: format(closestTime, 'H:mm') }),
+    ...(closestTime && { nextStateTime: closestTime }),
   });
 
   res.send('zaeb-ok');
@@ -222,10 +222,10 @@ app.get('/light/:id(rad\\d+)?', (req, res) => {
       if (err) {
         res.status(500).send();
       }
-      const closestTime = findClosest(data.light, data.timestamp);
+      const closestTime = findClosest(data.light);
       res.send({
         ...data,
-        ...(closestTime && { nextStateTime: format(closestTime, 'H:mm') }),
+        ...(closestTime && { nextStateTime: closestTime }),
       });
     });
 });

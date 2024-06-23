@@ -192,6 +192,7 @@ const sendMessage = (chatId: number | undefined, data: SvitloData, reply_to_mess
   chatBot.sendMessage(
     chatId,
     `${light ? '💡' : '❌'} З <b>${format(timestamp, 'HH:mm')}</b>${isToday(timestamp) ? '' : ' ' + format(timestamp, 'd/MM')} ${light ? 'світло є!' : 'світла нема :('}\nНаступне ${light ? 'відключення' : 'включення'} можливо ${nextState(light, nextStateTime)}\n\n${activeLink}`,
+    // `${light ? '💡' : '❌'} З <b>${format(timestamp, 'HH:mm')}</b>${isToday(timestamp) ? '' : ' ' + format(timestamp, 'd/MM')} ${light ? 'світло є!' : 'світла нема :('}\nНаступне ${light ? 'відключення' : 'включення'} можливо в 14:30`,
     {
       parse_mode: 'HTML',
       ...(reply_to_message_id && { reply_to_message_id }),
@@ -213,12 +214,12 @@ const sendLightData = (chatId: number, reply_to_message_id: number) => {
       if (err) {
         return null;
       }
-      const closestTime = findClosest(data.light, data.timestamp);
+      const closestTime = findClosest(data.light);
       sendMessage(
         chatId,
         {
           ...data,
-          ...(closestTime && { nextStateTime: format(closestTime, 'H:mm') }),
+          ...(closestTime && { nextStateTime: closestTime }),
         },
         reply_to_message_id
       );
