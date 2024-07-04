@@ -78,9 +78,6 @@ app.post(`/light/bot/message`, authenticateToken, async (req, res) => {
 const triggerWords = JSON.parse(process.env.TRIGGER_WORDS || '');
 const triggerShortWords = JSON.parse(process.env.TRIGGER_SHORT_WORDS || '');
 const triggerSchedule = JSON.parse(process.env.TRIGGER_SCHEDULE || '');
-const triggerBoobs = JSON.parse(process.env.TRIGGER_BOOBS || '');
-const triggerDicks = JSON.parse(process.env.TRIGGER_DICKS || '');
-const boobs = JSON.parse(process.env.BOOBS || '');
 /**
  * Event listener for incoming messages.
  * Sends light data to the chat users based on trigger words.
@@ -93,10 +90,6 @@ chatBot.on('message', (msg) => {
     chat: { id: chatId },
   } = msg;
 
-  if (msg.chat?.id === 143862747) {
-    console.log('MESSAGE', msg);
-  }
-
   if (triggerWords.some((words: string[]) => words.every((word) => text?.toLowerCase().includes(word)))) {
     sendLightData(chatId, originalMessageId);
     return;
@@ -105,23 +98,10 @@ chatBot.on('message', (msg) => {
     sendLightData(chatId, originalMessageId, true);
   }
   if (triggerSchedule.some((words: string[]) => words.every((word) => text?.toLowerCase().includes(word)))) {
+    // vidklychennya.jpg
     chatBot.sendPhoto(chatId, 'AgACAgIAAxkBAAIKPGZ9S6ay77iCY_OjDPUDoYHZLR-hAAJv4TEbNWzpS8llsuioxqa-AQADAgADeQADNQQ', {
       reply_to_message_id: originalMessageId,
     });
-  }
-  if (
-    msg.chat?.id === +process.env.RADUJNY_CHAT_ID_2! &&
-    triggerBoobs.some((words: string[]) => words.every((word) => text?.toLowerCase().includes(word)))
-  ) {
-    const boob = boobs[Math.floor(Math.random() * boobs.length)];
-    chatBot.sendMessage(chatId, boob, { reply_to_message_id: originalMessageId });
-  }
-  if (
-    msg.chat?.id === +process.env.RADUJNY_CHAT_ID_2! &&
-    triggerDicks.some((words: string[]) => words.every((word) => text?.toLowerCase().includes(word)))
-  ) {
-    const dick = `Є${'='.repeat(Math.floor(Math.random() * 19) + 2)}3`;
-    chatBot.sendMessage(chatId, dick, { reply_to_message_id: originalMessageId });
   }
 });
 
