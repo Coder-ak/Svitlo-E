@@ -1,4 +1,4 @@
-import { format, formatDuration, intervalToDuration, isToday } from 'date-fns';
+import { format, formatDuration, intervalToDuration, isToday, parse, subHours, toDate } from 'date-fns';
 import { uk } from 'date-fns/locale';
 
 export class SvitloUtils {
@@ -69,5 +69,11 @@ export class SvitloUtils {
         timer = undefined;
       }, timeout);
     };
+  }
+
+  static nextState(light: boolean, nextStateTime: string | undefined) {
+    return light
+      ? `o ${nextStateTime}`
+      : `з ${format(subHours(toDate(parse(nextStateTime || '00:00', 'HH:mm', new Date())), 3), 'H:mm')} до ${nextStateTime}`;
   }
 }

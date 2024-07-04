@@ -6,7 +6,7 @@
     "build": "npm run clean:dist && npm-run-all -p build:*",
     "build:client": "node esbuild.client.mjs",
     "build:server": "node esbuild.server.mjs",
-    "clean:dist": "rimraf dist/client/script* dist/client/style* dist/client/index* dist/server/index*",
+    "clean:dist": "rimraf dist/client/script* dist/client/style* dist/client/index* dist/server/index* dist/client/chart*",
     "serve:client": "http-server dist/client --cors --proxy http://localhost:3000",
     "serve:server": "node dist/server/index.js",
     "serve": "npm-run-all -p serve:*",

@@ -23,6 +23,7 @@
 /dist/client/index*
 /dist/client/script*
 /dist/client/style*
+/dist/client/chart*
 
 
 # misc

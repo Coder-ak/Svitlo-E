@@ -1,20 +1,17 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
 import * as dotenv from 'dotenv';
-import Nedb from 'nedb';
 import jwt, { Secret } from 'jsonwebtoken';
 import { SvitloData } from '../interfaces/svitlo-data';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
-import { format } from 'date-fns';
 import { botApp, sendMessage } from './chat-bot';
-import { db, findClosest } from './utils';
+import { db, findClosest, resetDtekMessage } from './utils';
 
 const router = express.Router();
 
 dotenv.config({ path: '.env' });
 
 const app: Express = express();
-// const db = new Nedb<SvitloData>({ filename: process.env.DB_PATH, autoload: true });
 
 const swaggerDocs = () => {
   const swaggerJSDocOptions: swaggerJSDoc.Options = {
@@ -156,7 +153,7 @@ const getArea = (areaId: string): string => {
  *       '500':
  *         description: Internal Server Error
  */
-app.post('/light', authenticateToken, (req, res, next) => {
+app.post('/light', authenticateToken, async (req, res, next) => {
   const { light, area } = req.body;
 
   console.log('payoad', new Date(), light, area);
@@ -174,8 +171,15 @@ app.post('/light', authenticateToken, (req, res, next) => {
     area: getArea(area),
   });
 
+  await resetDtekMessage();
+
   const closestTime = findClosest(!!light);
   sendMessage(+process.env.RADUJNY_CHAT_ID!, {
+    timestamp,
+    light: !!light,
+    ...(closestTime && { nextStateTime: closestTime }),
+  });
+  sendMessage(+process.env.RADUJNY_CHAT_ID_2!, {
     timestamp,
     light: !!light,
     ...(closestTime && { nextStateTime: closestTime }),

@@ -85,7 +85,8 @@ export class Svitlo {
   private displaySchedule(): void {
     const { light, nextStateTime } = this.svitloData;
 
-    document.getElementById('schedule')!.innerHTML = `Наступне ${light ? 'відключення' : 'включення'} можливо o ${nextStateTime}`;
+    document.getElementById('schedule')!.innerHTML =
+      `Наступне ${light ? 'відключення' : 'включення'} можливо ${SvitloUtils.nextState(light, nextStateTime)}`;
   }
 
   private pullToRefresh(): void {
