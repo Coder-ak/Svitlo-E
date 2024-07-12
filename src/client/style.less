@@ -272,13 +272,22 @@ a {
       border: none;
       margin: 0;
       padding: 0;
+      font-family: monospace;
     }
   
-    td {
+    td, th {
       width: 20px;
       height: 20px;
       border: 1px solid #aaa;
       white-space: nowrap;
+    }
+
+    td:first-child {
+      text-align: left;
+    }
+
+    td:last-child {
+      text-align: right;
     }
   
     .filled {
@@ -295,5 +304,18 @@ a {
   .card {
     width: 21rem;
     // padding: 0 1rem;
+  }
+
+  .time-table {
+    table {
+      font-size: .5rem;
+      line-height: .5rem;
+    }
+
+    td,
+    th {
+      width: 10px;
+      height: 10px;
+    }
   }
 }
