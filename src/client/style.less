@@ -174,12 +174,17 @@ a {
   border-top: 1px solid #c8d4d6;
   padding: 1rem 0;
   background-color: @card-bg;
+
+  a {
+    background-color: @card-bg;
+  }
 }
 
 .card {
   border-radius: 10px;
   width: 24rem;
   box-shadow: 0 0.0625rem 0.375rem 0 rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
 }
 
 /* Footer */
@@ -250,7 +255,44 @@ a {
     flex-grow: 1;
     max-width: 100px;
     text-align: right;
+
+    &.on {
+      color: @text-medium;
+    }
+    &.off {
+      color: @text-dark;
+    }
   }
+}
+
+.time-table {
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      border: none;
+      margin: 0;
+      padding: 0;
+      font-family: monospace;
+    }
+  
+    td, th {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #aaa;
+      white-space: nowrap;
+    }
+
+    td:first-child {
+      text-align: left;
+    }
+
+    td:last-child {
+      text-align: right;
+    }
+  
+    .filled {
+      background-color: #333;
+    }
 }
 
 /* Max-width 768px */ 
@@ -262,5 +304,18 @@ a {
   .card {
     width: 21rem;
     // padding: 0 1rem;
+  }
+
+  .time-table {
+    table {
+      font-size: .5rem;
+      line-height: .5rem;
+    }
+
+    td,
+    th {
+      width: 10px;
+      height: 10px;
+    }
   }
 }

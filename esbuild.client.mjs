@@ -6,7 +6,7 @@ import { htmlPlugin } from '@craftamap/esbuild-plugin-html';
 const watch = process.argv.includes('--watch');
 
 const buildOptions = {
-  entryPoints: ['src/client/script.ts', 'src/client/style.less'],
+  entryPoints: ['src/client/script.ts', 'src/client/style.less', 'src/client/chart.ts'],
   entryNames: '[name]-[hash]',
   outdir: 'dist/client',
   bundle: true,
@@ -24,6 +24,11 @@ const buildOptions = {
           entryPoints: ['src/client/script.ts', 'src/client/style.less'],
           filename: 'index.html',
           htmlTemplate: 'src/client/index.html',
+        },
+        {
+          entryPoints: ['src/client/chart.ts', 'src/client/style.less'],
+          filename: 'chart.html',
+          htmlTemplate: 'src/client/chart.html',
         },
       ],
     }),

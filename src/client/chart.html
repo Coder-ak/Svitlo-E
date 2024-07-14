@@ -19,7 +19,8 @@
   <meta name="msapplication-TileColor" content="#da532c">
   <meta name="msapplication-config" content="/browserconfig.xml">
   <meta name="theme-color" content="#f7fafd">
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" as="style"
+    onload="this.onload=null;this.rel='stylesheet'">
 </head>
 
 <body>
@@ -34,32 +35,14 @@
   </nav>
 
   <header class="header">
-    <div class="container">
-      <div id="status" class="status"></div>
-      <p id="schedule"></p>
-      <p id="vidkl"></p>
-      <p>Радужний масив, дома 1-11 (мабуть 12-19 також, навіть 20-е теж, але це не точно)</p>
-      <img src="assets/vidkluchennya.jpg" style="display:flex;width:100%">
+    <div class="container time-table">
+      <table id="chart"></table>
     </div>
   </header>
 
-  <div class="cards">
-    <div class="container">
-      <div class="card">
-        <div class="grid-header row">
-          <div class="icon">&nbsp;</div>
-          <div class="time">Час вкл/викл</div>
-          <div class="diff">Тривалість</div>
-        </div>
-        <div id="stats"></div>
-      </div>
-      <a href="/chart">Таблиця</a>
-    </div>
-  </div>
-
   <div class="footer">
     <div class="container">
-      <p class="p-small">Copyright © 2023 <a href="https://coderak.net">Coder_AK</a><br/>
+      <p class="p-small">Copyright © 2023 <a href="https://coderak.net">Coder_AK</a><br />
         <a href="https://www.vecteezy.com/free-vector/light-bulb">Light Bulb Vectors by Vecteezy</a>
       </p>
     </div>

@@ -1,19 +1,17 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
 import * as dotenv from 'dotenv';
-import Nedb from 'nedb';
 import jwt, { Secret } from 'jsonwebtoken';
 import { SvitloData } from '../interfaces/svitlo-data';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
-import { closestTo, format, isAfter, parse, toDate } from 'date-fns';
-const shutdown = require('db/shutdown.json');
+import { botApp, sendMessage } from './chat-bot';
+import { db, findClosest, resetDtekMessage } from './utils';
 
 const router = express.Router();
 
 dotenv.config({ path: '.env' });
 
 const app: Express = express();
-const db = new Nedb<SvitloData>({ filename: process.env.DB_PATH, autoload: true });
 
 const swaggerDocs = () => {
   const swaggerJSDocOptions: swaggerJSDoc.Options = {
@@ -86,6 +84,8 @@ if (process.argv.includes('--develop') || !!process.env.DEVELOP) {
 
 app.use(express.json());
 
+app.use(botApp);
+
 const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
@@ -153,7 +153,7 @@ const getArea = (areaId: string): string => {
  *       '500':
  *         description: Internal Server Error
  */
-app.post('/light', authenticateToken, (req, res, next) => {
+app.post('/light', authenticateToken, async (req, res, next) => {
   const { light, area } = req.body;
 
   console.log('payoad', new Date(), light, area);
@@ -163,10 +163,26 @@ app.post('/light', authenticateToken, (req, res, next) => {
     return;
   }
 
+  const timestamp = Date.now();
+
   db.insert({
-    timestamp: Date.now(),
+    timestamp,
     light: !!light,
     area: getArea(area),
+  });
+
+  await resetDtekMessage();
+
+  const closestTime = findClosest(!!light);
+  sendMessage(+process.env.RADUJNY_CHAT_ID!, {
+    timestamp,
+    light: !!light,
+    ...(closestTime && { nextStateTime: closestTime }),
+  });
+  sendMessage(+process.env.RADUJNY_CHAT_ID_2!, {
+    timestamp,
+    light: !!light,
+    ...(closestTime && { nextStateTime: closestTime }),
   });
 
   res.send('zaeb-ok');
@@ -207,26 +223,16 @@ app.get('/light/:id(rad\\d+)?', (req, res) => {
     .findOne(req.params.id ? { area: getArea(req.params.id) } : {}, { light: 1, timestamp: 1, _id: 0 })
     .sort({ timestamp: -1 })
     .exec((err: Error, data: SvitloData) => {
-      const schedule = shutdown[data.light ? 'off' : 'on'];
-
       if (err) {
         res.status(500).send();
       }
-      const closestTime = findClosest(schedule, data.timestamp);
+      const closestTime = findClosest(data.light);
       res.send({
         ...data,
-        ...(closestTime && { nextStateTime: format(closestTime, 'HH:mm') }),
+        ...(closestTime && { nextStateTime: closestTime }),
       });
     });
 });
-
-const findClosest = (schedule: string[], currentTime: number) => {
-  // Filter out past times
-  const futureTimes = schedule.map((time) => toDate(parse(time, 'iii HH', new Date()))).filter((time) => isAfter(time, currentTime));
-
-  // Find the closest future time
-  return closestTo(currentTime, futureTimes);
-};
 
 /**
  * Retrieve light data for all areas or the specified area.
