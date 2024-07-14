@@ -111,7 +111,7 @@ export class Chart {
       });
     }
 
-    return intervals;
+    return intervals.reverse();
   }
 }
 
