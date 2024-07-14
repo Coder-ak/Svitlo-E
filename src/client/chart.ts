@@ -1,18 +1,11 @@
-import {
-  startOfDay,
-  min,
-  max,
-  addDays,
-  format,
-  setHours,
-  startOfHour,
-  isEqual,
-  addHours,
-  isWithinInterval,
-  subDays,
-  isAfter,
-} from 'date-fns';
+import { format, setHours, isWithinInterval, roundToNearestMinutes, addMinutes, endOfHour } from 'date-fns';
 import { SvitloData } from 'src/interfaces/svitlo-data';
+
+interface IntervalData {
+  startTime: Date;
+  endTime: Date;
+  light: boolean;
+}
 
 export class Chart {
   constructor() {
@@ -22,87 +15,104 @@ export class Chart {
   private async onInit(): Promise<void> {
     const response = await fetch('/light/all?limit=132');
     const data = await response.json();
-    this.createChart(data);
+    this.createChart(this.createIntervals(data));
   }
 
-  private createChart(data: SvitloData[]) {
+  private createChart(data: IntervalData[]) {
     const chart = document.getElementById('chart') as HTMLTableElement;
     if (!chart) return;
 
+    // Clear existing content
+    chart.innerHTML = '';
+
+    // Create header row with hours and 'Σ' for total
     const header = chart.createTHead().insertRow();
+    header.appendChild(document.createElement('th')); // Empty cell for row headers
 
-    // Empty cell for row headers
-    header.appendChild(document.createElement('th'));
-
-    // Create header row with hours
     for (let i = 0; i < 24; i++) {
       const th = document.createElement('th');
       th.textContent = i.toString();
       header.appendChild(th);
     }
 
-    // Add Total header
     const totalHeader = document.createElement('th');
     totalHeader.textContent = 'Σ'; // Using Sigma symbol for sum
     header.appendChild(totalHeader);
 
-    const currentTime = new Date();
+    // Group intervals by day
+    const groupedData: Record<string, IntervalData[]> = {};
+    data.forEach((item) => {
+      const dayKey = format(item.startTime, 'EEE, dd/MM');
+      const dataKeyEnd = format(item.endTime, 'EEE, dd/MM');
+      if (!groupedData[dayKey]) {
+        groupedData[dayKey] = [];
+      }
 
-    // Sort data by timestamp in descending order
-    data.sort((a, b) => b.timestamp - a.timestamp);
+      if (dataKeyEnd !== dayKey) {
+        if (!groupedData[dataKeyEnd]) {
+          groupedData[dataKeyEnd] = [];
+        }
+        groupedData[dataKeyEnd].push(item);
+      }
 
-    // Find the earliest and latest dates
-    const dates = data.map((item) => startOfDay(new Date(item.timestamp)));
-    const minDate = min(dates);
-    const maxDate = max(dates);
+      groupedData[dayKey].push(item);
+    });
 
-    // Create rows for each day
-    for (let d = maxDate; d >= minDate; d = subDays(d, 1)) {
+    // Sort and process each day
+    Object.keys(groupedData).forEach((dayKey) => {
+      const dayData = groupedData[dayKey];
+
+      // Create a row for the day
       const row = chart.insertRow();
       const dateCell = row.insertCell();
-      dateCell.textContent = format(d, 'EEE, dd/MM');
+      dateCell.textContent = dayKey;
 
-      let isEventActive = false;
-      let filledCellCount = 0;
+      // Track total hours with light: false
+      let totalFalseHours = 0;
 
-      for (let h = 0; h < 24; h++) {
-        const cell = row.insertCell();
-        const cellStartTime = setHours(d, h);
-        const cellEndTime = addHours(cellStartTime, 1);
+      // Fill cells for each hour
+      for (let hour = 0; hour < 24; hour++) {
+        const currentHour = setHours(dayData[0].startTime, hour);
 
-        // Check if we've reached the current time
-        if (isAfter(cellStartTime, currentTime)) {
-          break; // Stop filling cells after current time
-        }
-
-        // Check for events in this hour
-        data.forEach((item) => {
-          const itemTime = new Date(item.timestamp);
-          if (isWithinInterval(itemTime, { start: cellStartTime, end: cellEndTime })) {
-            if (!item.light) {
-              isEventActive = true;
-            } else {
-              isEventActive = false;
-            }
-          }
+        // Check for events within the current hour
+        const isLightOff = dayData.some((item) => {
+          return isWithinInterval(currentHour, { start: item.startTime, end: item.endTime }) && !item.light;
         });
 
-        if (isEventActive) {
-          cell.classList.add('filled');
-          filledCellCount++;
+        if (isLightOff) {
+          totalFalseHours++;
         }
+
+        const cell = row.insertCell();
+        isLightOff && cell.classList.add('filled');
       }
 
-      // Fill remaining cells in the row up to 24 hours
-      while (row.cells.length < 25) {
-        // 25 because we have a date cell at the start
-        row.insertCell();
-      }
-
-      // Add Total cell
+      // Fill in the total column
       const totalCell = row.insertCell();
-      totalCell.textContent = filledCellCount.toString();
+      totalCell.textContent = totalFalseHours.toString();
+    });
+  }
+
+  private createIntervals(data: SvitloData[]): IntervalData[] {
+    const intervals: IntervalData[] = [];
+
+    // Sort data by timestamp in ascending order
+    data.sort((a, b) => a.timestamp - b.timestamp);
+
+    for (let i = 0; i < data.length; i++) {
+      const current = data[i];
+      const startTime = new Date(current.timestamp);
+      const endTime = i < data.length - 1 ? new Date(data[i + 1].timestamp) : endOfHour(new Date());
+
+      intervals.push({
+        startTime: addMinutes(roundToNearestMinutes(startTime, { nearestTo: 20 }), 1),
+        endTime: addMinutes(roundToNearestMinutes(endTime, { nearestTo: 20 }), -1),
+        light: current.light,
+      });
     }
+
+    console.log('intervals', intervals.reverse());
+    return intervals;
   }
 }
 
