@@ -111,7 +111,6 @@ export class Chart {
       });
     }
 
-    console.log('intervals', intervals.reverse());
     return intervals;
   }
 }
